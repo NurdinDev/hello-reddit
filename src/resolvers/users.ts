@@ -54,7 +54,7 @@ export class UserResolver {
   @Mutation(() => UserResponse)
   async register(
     @Arg("options") options: UsernamePasswordInput,
-    @Ctx() { em }: MyContext
+    @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
     const { username, password } = options;
     // check if the username
@@ -101,6 +101,10 @@ export class UserResolver {
     } catch (error) {
       console.error(error);
     }
+
+
+    // keep user login after register
+    req.session!.userId = user.id;
 
     return { user };
   }
