@@ -1,44 +1,28 @@
 import {
-  Button,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  Input,
+  Button
 } from "@chakra-ui/core";
-import { Field, Formik } from "formik";
+import { Formik } from "formik";
 import React from "react";
-import { useMutation } from "urql";
 import { InputField } from "../components/InputField";
 import { Wrapper } from "../components/Wrapper";
+import { useRegisterMutation } from "../generated/graphql";
+import { toErrorMap } from "../utils/toErrorMap";
+import { useRouter } from "next/router";
 
 interface RegisterProps {}
 
-const REGISTER_MUT = `
- mutation Register($username: String!, $password: String!){
-   register(options: {username: $username, password: $password}) {
-     errors {
-       field
-       message
-     }
-
-     user {
-       id
-       username
-     }
-   }
- }
-`;
 export const Register: React.FC<RegisterProps> = ({}) => {
-  const [, register] = useMutation(REGISTER_MUT);
+  const [, register] = useRegisterMutation();
+  const router = useRouter();
 
-  function validateName(value) {
+  function validateName(value: any) {
     let error;
     if (!value) {
       error = "Username is required";
     }
     return error;
   }
-  function validatePassword(value) {
+  function validatePassword(value: any) {
     let error;
     if (!value) {
       error = "Password is required";
@@ -51,11 +35,13 @@ export const Register: React.FC<RegisterProps> = ({}) => {
       <Formik
         initialValues={{ username: "", password: "" }}
         onSubmit={async (values, actions) => {
-          await register(values);
-          actions.setSubmitting(false);
-          actions.resetForm();
-          console.log("Register success!!! 👻 ");
-          
+          const response = await register(values);
+          if (response.data?.register.errors) {
+            actions.setErrors(toErrorMap(response.data.register.errors));
+          } else if (response.data?.register.user) {
+            console.log("Register success!!! 👻 ");
+            router.push('/');
+          }
         }}
       >
         {(props) => (
