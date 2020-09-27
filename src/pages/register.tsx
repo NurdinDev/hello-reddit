@@ -7,12 +7,30 @@ import {
 } from "@chakra-ui/core";
 import { Field, Formik } from "formik";
 import React from "react";
+import { useMutation } from "urql";
 import { InputField } from "../components/InputField";
 import { Wrapper } from "../components/Wrapper";
 
 interface RegisterProps {}
 
+const REGISTER_MUT = `
+ mutation Register($username: String!, $password: String!){
+   register(options: {username: $username, password: $password}) {
+     errors {
+       field
+       message
+     }
+
+     user {
+       id
+       username
+     }
+   }
+ }
+`;
 export const Register: React.FC<RegisterProps> = ({}) => {
+  const [, register] = useMutation(REGISTER_MUT);
+
   function validateName(value) {
     let error;
     if (!value) {
@@ -32,11 +50,12 @@ export const Register: React.FC<RegisterProps> = ({}) => {
     <Wrapper variant="small">
       <Formik
         initialValues={{ username: "", password: "" }}
-        onSubmit={(values, actions) => {
-          setTimeout(() => {
-            console.log(JSON.stringify(values, null, 2));
-            actions.setSubmitting(false);
-          }, 1000);
+        onSubmit={async (values, actions) => {
+          await register(values);
+          actions.setSubmitting(false);
+          actions.resetForm();
+          console.log("Register success!!! 👻 ");
+          
         }}
       >
         {(props) => (
