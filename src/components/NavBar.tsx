@@ -1,20 +1,20 @@
-import { Box, Button, Flex, Link, useColorMode } from "@chakra-ui/core";
+import { Box, Button, Link, useColorMode } from "@chakra-ui/core";
 import React from "react";
 import NextLink from "next/link";
-import { useMeQuery } from "../generated/graphql";
+import { useLogoutMutation, useMeQuery } from "../generated/graphql";
 import { DarkModeSwitch } from "./DarkModeSwitch";
 
 interface NavBarProps {}
 
 export const NavBar: React.FC<NavBarProps> = ({}) => {
   const [{ data, fetching }] = useMeQuery();
-  const { colorMode } = useColorMode()
+  const [{ fetching: logoutFetchign }, logout] = useLogoutMutation();
+  const { colorMode } = useColorMode();
   let body = null;
 
+  const bgColor = { light: "white", dark: "gray.800" };
 
-  const bgColor = { light: 'white', dark: 'gray.800' }
-
-  const color = { light: 'black', dark: 'white' }
+  const color = { light: "black", dark: "white" };
 
   // data loading
   if (fetching) {
@@ -23,7 +23,7 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
     body = (
       <>
         <NextLink href="/login">
-          <Link>login</Link>
+          <Link mr="2">login</Link>
         </NextLink>
         <NextLink href="/register">
           <Link>register</Link>
@@ -35,7 +35,14 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
     body = (
       <>
         <Box>{data.me.username}</Box>
-        <Button ml="2" as="a" variant="outline" size="sm">
+        <Button
+          ml="2"
+          as="a"
+          variant="outline"
+          size="sm"
+          onClick={() => logout()}
+          isLoading={logoutFetchign}
+        >
           Logout
         </Button>
       </>
