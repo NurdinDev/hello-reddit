@@ -48,6 +48,7 @@ export type Mutation = {
   deletePost: Scalars['Boolean'];
   register: UserResponse;
   login: UserResponse;
+  logout: Scalars['Boolean'];
 };
 
 
@@ -93,6 +94,11 @@ export type UsernamePasswordInput = {
   password: Scalars['String'];
 };
 
+export type RegularUserFragment = (
+  { __typename?: 'User' }
+  & Pick<User, 'id' | 'username'>
+);
+
 export type LoginMutationVariables = Exact<{
   options: UsernamePasswordInput;
 }>;
@@ -110,6 +116,14 @@ export type LoginMutation = (
       & Pick<User, 'id' | 'username'>
     )> }
   ) }
+);
+
+export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type LogoutMutation = (
+  { __typename?: 'Mutation' }
+  & Pick<Mutation, 'logout'>
 );
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
@@ -142,7 +156,12 @@ export type RegisterMutation = (
   ) }
 );
 
-
+export const RegularUserFragmentDoc = gql`
+    fragment RegularUser on User {
+  id
+  username
+}
+    `;
 export const LoginDocument = gql`
     mutation Login($options: UsernamePasswordInput!) {
   login(options: $options) {
@@ -160,6 +179,15 @@ export const LoginDocument = gql`
 
 export function useLoginMutation() {
   return Urql.useMutation<LoginMutation, LoginMutationVariables>(LoginDocument);
+};
+export const LogoutDocument = gql`
+    mutation Logout {
+  logout
+}
+    `;
+
+export function useLogoutMutation() {
+  return Urql.useMutation<LogoutMutation, LogoutMutationVariables>(LogoutDocument);
 };
 export const MeDocument = gql`
     query Me {
