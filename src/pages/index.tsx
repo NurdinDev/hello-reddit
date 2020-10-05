@@ -1,18 +1,14 @@
-import {
-  Link as ChakraLink,
-  Text,
-} from '@chakra-ui/core'
-
-import { Container } from '../components/Container'
-import { DarkModeSwitch } from '../components/DarkModeSwitch'
+import { Text } from "@chakra-ui/core";
+import { Container } from "../components/Container";
+import { NavBar } from "../components/NavBar";
 
 const Index = () => (
-  <Container>
-      <Text>
-        Example repository of.Î
-      </Text>
-    <DarkModeSwitch />
-  </Container>
-)
+  <>
+    <NavBar />
+    <Container>
+      <Text>Example repository of.Î</Text>
+    </Container>
+  </>
+);
 
-export default Index
+export default Index;
