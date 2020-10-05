@@ -1,6 +1,4 @@
-import {
-  Button
-} from "@chakra-ui/core";
+import { Button } from "@chakra-ui/core";
 import { Formik } from "formik";
 import React from "react";
 import { InputField } from "../components/InputField";
@@ -35,12 +33,12 @@ export const Register: React.FC<RegisterProps> = ({}) => {
       <Formik
         initialValues={{ username: "", password: "" }}
         onSubmit={async (values, actions) => {
-          const response = await register(values);
+          const response = await register({ options: values });
           if (response.data?.register.errors) {
             actions.setErrors(toErrorMap(response.data.register.errors));
           } else if (response.data?.register.user) {
             console.log("Register success!!! 👻 ");
-            router.push('/');
+            router.push("/");
           }
         }}
       >
