@@ -1,13 +1,16 @@
 import { Box, Button, Link, useColorMode } from "@chakra-ui/core";
-import React from "react";
 import NextLink from "next/link";
+import React from "react";
 import { useLogoutMutation, useMeQuery } from "../generated/graphql";
+import { isServer } from "../utils/isServer";
 import { DarkModeSwitch } from "./DarkModeSwitch";
 
 interface NavBarProps {}
 
 export const NavBar: React.FC<NavBarProps> = ({}) => {
-  const [{ data, fetching }] = useMeQuery();
+  const [{ data, fetching }] = useMeQuery({
+    pause: isServer(),
+  });
   const [{ fetching: logoutFetchign }, logout] = useLogoutMutation();
   const { colorMode } = useColorMode();
   let body = null;
