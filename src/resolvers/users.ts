@@ -4,7 +4,6 @@ import {
   Ctx,
   Arg,
   Mutation,
-  InputType,
   Field,
   ObjectType,
   Query,
@@ -12,23 +11,9 @@ import {
 import { User } from "../entities/User";
 import argon2 from "argon2";
 import { COOKI_NAME } from "../constants";
-
-@InputType()
-class UsernamePasswordInput {
-  @Field()
-  username: string;
-  @Field()
-  password: string;
-}
-
-@ObjectType()
-class FieldError {
-  @Field()
-  field: string;
-
-  @Field()
-  message: string;
-}
+import { EmailOrUsernameInput, EmailAndUsernameInput } from "./InputFields";
+import { FieldError } from "./FieldError";
+import { validateRegister } from "../utils/validateUserInput";
 
 @ObjectType()
 class UserResponse {
@@ -41,6 +26,10 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+  // @Mutation(() => Boolean)
+  // async forgetPassword(@Arg("email") email: string, @Ctx() { em }: MyContext) {
+  //   return true;
+  // }
   @Query(() => User, { nullable: true })
   async me(@Ctx() { req, em }: MyContext) {
     if (!req.session.userId) {
@@ -54,91 +43,45 @@ export class UserResolver {
 
   @Mutation(() => UserResponse)
   async register(
-    @Arg("options") options: UsernamePasswordInput,
+    @Arg("options") options: EmailAndUsernameInput,
     @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
-    const { username, password } = options;
-    // check if the username
-    if (username.length <= 2) {
-      return {
-        errors: [
-          {
-            field: "username",
-            message: "length must grater than 2",
-          },
-        ],
-      };
-    }
+    const { username, password, email } = options;
 
-    // check if the password
-    if (password.length <= 3) {
-      return {
-        errors: [
-          {
-            field: "password",
-            message: "length must grater than 3",
-          },
-        ],
-      };
-    }
+    const user = await em.findOne(User, { username });
 
-    // check if username is exist in the database
-    const userExist = await em.findOne(User, { username });
-    if (userExist) {
-      return {
-        errors: [
-          {
-            field: "username",
-            message: "this username is already exist!",
-          },
-        ],
-      };
+    const errors = await validateRegister(options, user);
+
+    if (errors.length) {
+      return { errors };
     }
 
     const hashedPassword = await argon2.hash(password);
-    const user = em.create(User, { username, password: hashedPassword });
+
+    const newUser = em.create(User, {
+      email,
+      username,
+      password: hashedPassword,
+    });
+
     try {
-      await em.persistAndFlush(user);
+      await em.persistAndFlush(newUser);
     } catch (error) {
       console.error(error);
     }
 
     // keep user login after register
-    req.session!.userId = user.id;
+    req.session!.userId = newUser.id;
 
-    return { user };
+    return { user: newUser };
   }
 
   @Mutation(() => UserResponse)
   async login(
-    @Arg("options") options: UsernamePasswordInput,
+    @Arg("options") options: EmailOrUsernameInput,
     @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
-    const { username, password } = options;
-
-    // check if the username
-    if (username.length <= 2) {
-      return {
-        errors: [
-          {
-            field: "username",
-            message: "length must grater than 2",
-          },
-        ],
-      };
-    }
-
-    // check if the password
-    if (password.length <= 3) {
-      return {
-        errors: [
-          {
-            field: "username",
-            message: "length must grater than 3",
-          },
-        ],
-      };
-    }
+    const { username } = options;
 
     const user = await em.findOne(User, { username });
 
@@ -146,27 +89,23 @@ export class UserResolver {
       return {
         errors: [
           {
-            field: "username",
-            message: "this username doesn't exist",
+            field: "usernameOrEmail",
+            message: "that username doesn't exist",
           },
         ],
       };
     }
 
-    const passwordMatch = await argon2.verify(user.password, password);
+    const errors = await validateRegister(options, user);
 
-    if (!passwordMatch) {
-      return {
-        errors: [
-          {
-            field: "password",
-            message: "incorrect password!",
-          },
-        ],
-      };
+    console.log(errors);
+
+    if (errors.length) {
+      return { errors };
     }
 
-    req.session!.userId = user.id;
+    // save user cookie
+    req.session!.userId = user?.id;
 
     return {
       user,
