@@ -81,24 +81,24 @@ export class UserResolver {
     @Arg("options") options: EmailOrUsernameInput,
     @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
-    const { username } = options;
+    const { username, email } = options;
 
-    const user = await em.findOne(User, { username });
+    const isEmail = email && email.includes("@");
+
+    const user = await em.findOne(User, isEmail ? { email } : { username });
 
     if (!user) {
       return {
         errors: [
           {
             field: "usernameOrEmail",
-            message: "that username doesn't exist",
+            message: "that username doesn't exist!",
           },
         ],
       };
     }
 
     const errors = await validateRegister(options, user);
-
-    console.log(errors);
 
     if (errors.length) {
       return { errors };
