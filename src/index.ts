@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import "dotenv-safe/config";
 import { MikroORM } from "@mikro-orm/core";
 import { COOKI_NAME, __prod__ } from "./constants";
 import mikroConfig from "./mikro-orm.config";
