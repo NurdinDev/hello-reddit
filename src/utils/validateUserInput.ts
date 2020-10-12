@@ -21,7 +21,7 @@ export const validateRegister = async (
   if (email && !email.includes("@")) {
     errors.push({
       field: "email",
-      message: "email must contain @",
+      message: "invalid email!",
     });
   }
 
