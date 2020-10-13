@@ -10,11 +10,13 @@ import {
 } from "type-graphql";
 import { User } from "../entities/User";
 import argon2 from "argon2";
-import { COOKI_NAME } from "../constants";
+import { COOKI_NAME, FORGET_PASSWORD_PREFIX } from "../constants";
 import { EmailOrUsernameInput, EmailAndUsernameInput } from "./InputFields";
 import { FieldError } from "./FieldError";
 import { validateRegister } from "../utils/validateRegister";
 import { validateLogin } from "../utils/validateLogin";
+import { sendEmail } from "../utils/sendEmail";
+import { v4 } from "uuid";
 
 @ObjectType()
 class UserResponse {
@@ -28,9 +30,29 @@ class UserResponse {
 @Resolver()
 export class UserResolver {
   @Mutation(() => Boolean)
-  async forgetPassword(@Arg("email") email: string, @Ctx() { em }: MyContext) {
-    const user = em.findOne(User, { email });
-    return user;
+  async forgotPassword(
+    @Arg("email") email: string,
+    @Ctx() { em, redis }: MyContext
+  ) {
+    const user = await em.findOne(User, { email });
+    if (!user) {
+      return false;
+    }
+
+    const token = v4();
+
+    await redis.set(
+      FORGET_PASSWORD_PREFIX + token,
+      user.id,
+      "ex",
+      1000 * 60 * 60 * 24
+    ); // 1 day
+
+    const html = `<a href="http:localhost:3000/change-password/${token}">reset password</a>`;
+
+    await sendEmail(email, html);
+
+    return true;
   }
 
   @Query(() => User, { nullable: true })
