@@ -1,4 +1,4 @@
-import { Button } from "@chakra-ui/core";
+import { Button, Flex, Link, Text } from "@chakra-ui/core";
 import { Formik } from "formik";
 import { withUrqlClient } from "next-urql";
 import { useRouter } from "next/router";
@@ -8,6 +8,7 @@ import { Wrapper } from "../components/Wrapper";
 import { useLoginMutation } from "../generated/graphql";
 import { createUrqlClient } from "../utils/createUrqlClient";
 import { toErrorMap } from "../utils/toErrorMap";
+import NextLink from "next/link";
 
 export const Login: React.FC<{}> = ({}) => {
   const [, login] = useLoginMutation();
@@ -57,6 +58,11 @@ export const Login: React.FC<{}> = ({}) => {
               placeholder="Enter your password"
               validate={validatePassword}
             />
+            <Flex mt="2">
+              <NextLink href="/forget-password">
+                <Link ml="auto">forget the password?</Link>
+              </NextLink>
+            </Flex>
             <Button
               mt={4}
               variantColor="teal"
