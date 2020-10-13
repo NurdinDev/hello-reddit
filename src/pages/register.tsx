@@ -30,10 +30,18 @@ export const Register: React.FC<RegisterProps> = ({}) => {
     return error;
   }
 
+  function validateEmail(value: string) {
+    let error;
+    if (!value) {
+      error = "Email is required";
+    }
+    return error;
+  }
+
   return (
     <Wrapper variant="small">
       <Formik
-        initialValues={{ username: "", password: "" }}
+        initialValues={{ username: "", password: "", email: "" }}
         onSubmit={async (values, actions) => {
           const response = await register({ options: values });
           if (response.data?.register.errors) {
@@ -51,6 +59,12 @@ export const Register: React.FC<RegisterProps> = ({}) => {
               label="Username"
               placeholder="Enter your username"
               validate={validateName}
+            />
+            <InputField
+              name="email"
+              label="Email"
+              placeholder="Enter your email"
+              validate={validateEmail}
             />
             <InputField
               name="password"

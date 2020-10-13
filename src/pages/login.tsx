@@ -31,7 +31,7 @@ export const Login: React.FC<{}> = ({}) => {
   return (
     <Wrapper variant="small">
       <Formik
-        initialValues={{ username: "", password: "" }}
+        initialValues={{ usernameOrEmail: "", password: "" }}
         onSubmit={async (values, actions) => {
           const response = await login({ options: values });
           if (response.data?.login.errors) {
@@ -45,7 +45,7 @@ export const Login: React.FC<{}> = ({}) => {
         {(props) => (
           <form onSubmit={props.handleSubmit}>
             <InputField
-              name="username"
+              name="usernameOrEmail"
               label="Username"
               placeholder="Enter your username"
               validate={validateName}
