@@ -13,7 +13,8 @@ import argon2 from "argon2";
 import { COOKI_NAME } from "../constants";
 import { EmailOrUsernameInput, EmailAndUsernameInput } from "./InputFields";
 import { FieldError } from "./FieldError";
-import { validateRegister } from "../utils/validateUserInput";
+import { validateRegister } from "../utils/validateRegister";
+import { validateLogin } from "../utils/validateLogin";
 
 @ObjectType()
 class UserResponse {
@@ -26,10 +27,12 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
-  // @Mutation(() => Boolean)
-  // async forgetPassword(@Arg("email") email: string, @Ctx() { em }: MyContext) {
-  //   return true;
-  // }
+  @Mutation(() => Boolean)
+  async forgetPassword(@Arg("email") email: string, @Ctx() { em }: MyContext) {
+    const user = em.findOne(User, { email });
+    return user;
+  }
+
   @Query(() => User, { nullable: true })
   async me(@Ctx() { req, em }: MyContext) {
     if (!req.session.userId) {
@@ -48,9 +51,26 @@ export class UserResolver {
   ): Promise<UserResponse> {
     const { username, password, email } = options;
 
-    const user = await em.findOne(User, { username });
+    const userByEmail = await em.findOne(User, { email });
+    const userByUsername = await em.findOne(User, { username });
 
-    const errors = await validateRegister(options, user);
+    const errors = [];
+
+    if (userByEmail) {
+      errors.push({
+        field: "email",
+        message: "this email is already registered!",
+      });
+    }
+
+    if (userByUsername) {
+      errors.push({
+        field: "username",
+        message: "this username is already exist!",
+      });
+    }
+
+    errors.push(...(await validateRegister(options)));
 
     if (errors.length) {
       return { errors };
@@ -81,11 +101,16 @@ export class UserResolver {
     @Arg("options") options: EmailOrUsernameInput,
     @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
-    const { username, email } = options;
+    const { usernameOrEmail, password } = options;
 
-    const isEmail = email && email.includes("@");
+    const isEmail = usernameOrEmail && usernameOrEmail.includes("@");
 
-    const user = await em.findOne(User, isEmail ? { email } : { username });
+    const user = await em.findOne(
+      User,
+      isEmail ? { email: usernameOrEmail } : { username: usernameOrEmail }
+    );
+
+    console.log({ user });
 
     if (!user) {
       return {
@@ -98,10 +123,23 @@ export class UserResolver {
       };
     }
 
-    const errors = await validateRegister(options, user);
+    const errors = await validateLogin(options);
 
     if (errors.length) {
       return { errors };
+    }
+
+    const passwordMatch = await argon2.verify(user.password, password);
+
+    if (!passwordMatch) {
+      return {
+        errors: [
+          {
+            field: "password",
+            message: "incorrect password!",
+          },
+        ],
+      };
     }
 
     // save user cookie
