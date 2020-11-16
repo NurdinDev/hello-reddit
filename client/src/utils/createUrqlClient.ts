@@ -1,3 +1,4 @@
+import Router from "next/router";
 import { cacheExchange } from "@urql/exchange-graphcache";
 import { dedupExchange, fetchExchange } from "urql";
 import {
@@ -8,6 +9,19 @@ import {
   RegisterMutation,
 } from "../generated/graphql";
 import { betterUpdateQuery } from "./betterUpdateQuery";
+import { pipe, tap } from "wonka";
+import { Exchange } from "urql";
+
+const errorExchange: Exchange = ({ forward }) => (ops$) => {
+  return pipe(
+    forward(ops$),
+    tap(({ error }) => {
+      if (error?.message.toLowerCase().includes("not authenticated")) {
+        Router.replace("/login");
+      }
+    })
+  );
+};
 
 const cache = cacheExchange({
   updates: {
@@ -61,7 +75,5 @@ export const createUrqlClient = (ssrExchange: any) => ({
   fetchOptions: {
     credentials: "include" as const,
   },
-  exchanges: [dedupExchange, cache, ssrExchange, fetchExchange],
-  ssrExchange,
-  fetchExchange,
+  exchanges: [dedupExchange, cache,errorExchange, ssrExchange, fetchExchange],
 });
