@@ -38,8 +38,12 @@ export const Login: React.FC<{}> = ({}) => {
           if (response.data?.login.errors) {
             actions.setErrors(toErrorMap(response.data.login.errors));
           } else if (response.data?.login.user) {
-            console.log("Login success!!! 👻 ");
-            router.push("/");
+            console.log("Login success!!! 👻 ", router.query);
+            if (typeof router.query.next === "string") {
+              router.push(router.query.next);
+            } else {
+              router.push("/");
+            }
           }
         }}
       >
