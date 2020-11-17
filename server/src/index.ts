@@ -1,29 +1,19 @@
-import "reflect-metadata";
-import "dotenv-safe/config";
-import { COOKI_NAME, __prod__ } from "./constants";
-import express from "express";
 import { ApolloServer } from "apollo-server-express";
-import { buildSchema } from "type-graphql";
-import { PostResolver } from "./resolvers/posts";
-import { UserResolver } from "./resolvers/users";
-import Redis from "ioredis";
-import session from "express-session";
 import connectRedis from "connect-redis";
 import cors from "cors";
+import "dotenv-safe/config";
+import express from "express";
+import session from "express-session";
+import Redis from "ioredis";
+import "reflect-metadata";
+import { buildSchema } from "type-graphql";
 import { createConnection } from "typeorm";
-import { Post } from "./entities/Post";
-import { User } from "./entities/User";
+import { COOKI_NAME, __prod__ } from "./constants";
+import { PostResolver } from "./resolvers/posts";
+import { UserResolver } from "./resolvers/users";
 
 const main = async () => {
-  await createConnection({
-    type: "postgres",
-    database: "zoo_reddit",
-    username: "postgres",
-    password: "postgres",
-    logging: true,
-    synchronize: true,
-    entities: [User, Post],
-  });
+  await createConnection();
 
   const app = express();
 
