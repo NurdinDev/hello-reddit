@@ -8,7 +8,7 @@ import {
   ObjectType,
   Query,
 } from "type-graphql";
-import { User } from "../entities/User";
+import { User } from "../entity/User";
 import argon2 from "argon2";
 import { COOKI_NAME, FORGET_PASSWORD_PREFIX } from "../constants";
 import { EmailOrUsernameInput, EmailAndUsernameInput } from "./InputFields";
