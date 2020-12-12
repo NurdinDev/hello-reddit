@@ -116,3 +116,4 @@ dist
 /out/
 /build
 .DS_Store
+.idea/
