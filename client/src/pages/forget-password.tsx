@@ -1,9 +1,9 @@
-import { Box, Button, Flex, Link } from "@chakra-ui/core";
-import { Formik } from "formik";
-import React, { useState } from "react";
-import { InputField } from "../components/InputField";
-import { Wrapper } from "../components/Wrapper";
-import { useForgotPasswordMutation } from "../generated/graphql";
+import {Box, Button, Flex, Link} from "@chakra-ui/core";
+import {Formik} from "formik";
+import React, {useState} from "react";
+import {InputField} from "../components/InputField";
+import {Wrapper} from "../components/Wrapper";
+import {useForgotPasswordMutation} from "../generated/graphql";
 import NextLink from "next/link";
 
 const ForgetPassword: React.FC<{}> = ({}) => {
@@ -22,9 +22,9 @@ const ForgetPassword: React.FC<{}> = ({}) => {
   return (
     <Wrapper variant="small">
       <Formik
-        initialValues={{ email: "" }}
-        onSubmit={async ({ email }, actions) => {
-          await forgotPassword({ email });
+        initialValues={{email: ""}}
+        onSubmit={async ({email}) => {
+          await forgotPassword({email});
           setComplete(true);
         }}
       >
