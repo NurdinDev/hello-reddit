@@ -1,82 +1,89 @@
-import { Post } from "../entity/Post";
+import {Post} from "../entity/Post";
 import {
-  Resolver,
-  Query,
-  Int,
-  Arg,
-  Mutation,
-  InputType,
-  Field,
-  Ctx,
-  UseMiddleware,
+    Resolver,
+    Query,
+    Int,
+    Arg,
+    Mutation,
+    InputType,
+    Field,
+    Ctx,
+    UseMiddleware, FieldResolver, Root,
 } from "type-graphql";
-import { MyContext } from "../types";
-import { isAuth } from "../middleware/isAuth";
-import { getConnection } from "typeorm";
+import {MyContext} from "../types";
+import {isAuth} from "../middleware/isAuth";
+import {getConnection} from "typeorm";
 
 @InputType()
 class PostInput {
-  @Field()
-  title!: string;
-  @Field()
-  text!: string;
+    @Field()
+    title!: string;
+    @Field()
+    text!: string;
 }
 
-@Resolver()
+@Resolver(Post)
 export class PostResolver {
-  @Query(() => [Post])
-  async posts(
-    @Arg("limit", () => Int) limit: number,
-    @Arg("cursor", () => String, { nullable: true }) cursor: string | null
-  ): Promise<Post[]> {
-    const realLimit = Math.min(50, limit);
-    const qb = getConnection()
-      .getRepository(Post)
-      .createQueryBuilder("p")
-      .orderBy('"createdAt"', "DESC")
-      .take(realLimit);
+    @FieldResolver(() => String)
+    textSnippet(
+        @Root() root: Post
+    ) {
+        return root.text.slice(0, 50);
+}
 
-    if (cursor) {
-      qb.where('"createdAt" < :cursor', { cursor: new Date(parseInt(cursor)) });
+    @Query(() => [Post])
+    async posts(
+        @Arg("limit", () => Int) limit: number,
+        @Arg("cursor", () => String, {nullable: true}) cursor: string | null
+    ): Promise<Post[]> {
+        const realLimit = Math.min(50, limit);
+        const qb = getConnection()
+            .getRepository(Post)
+            .createQueryBuilder("p")
+            .orderBy('"createdAt"', "DESC")
+            .take(realLimit);
+
+        if (cursor) {
+            qb.where('"createdAt" < :cursor', {cursor: new Date(parseInt(cursor))});
+        }
+
+        return qb.getMany();
     }
 
-    return qb.getMany();
-  }
-
-  @Query(() => Post, { nullable: true })
-  post(@Arg("id", () => Int) id: number): Promise<Post | undefined> {
-    return Post.findOne(id);
-  }
-
-  @Mutation(() => Post)
-  @UseMiddleware(isAuth)
-  async createPost(
-    @Arg("input") input: PostInput,
-    @Ctx() { req }: MyContext
-  ): Promise<Post> {
-    return Post.create({ ...input, creatorId: req.session.userId }).save();
-  }
-
-  @Mutation(() => Post, { nullable: true })
-  async updatePost(
-    @Arg("id") id: number,
-    @Arg("title", () => String, { nullable: true }) title: string
-  ): Promise<Post | null> {
-    const post = await Post.findOne(id);
-    if (!post) {
-      return null;
+    @Query(() => Post, {nullable: true})
+    post(@Arg("id", () => Int) id: number): Promise<Post | undefined> {
+        return Post.findOne(id);
     }
 
-    if (typeof title !== undefined) {
-      await Post.update({ id }, { title });
+    @Mutation(() => Post)
+    @UseMiddleware(isAuth)
+    async createPost(
+        @Arg("input") input: PostInput,
+        @Ctx() {req}: MyContext
+    ): Promise<Post> {
+        return Post.create({...input, creatorId: req.session.userId}).save();
     }
 
-    return post;
-  }
+    @Mutation(() => Post, {nullable: true})
+    async updatePost(
+        @Arg("id") id: number,
+        @Arg("title", () => String, {nullable: true}) title: string
+    ): Promise<Post | null> {
+        const post = await Post.findOne(id);
+        if (!post) {
+            return null;
+        }
 
-  @Mutation(() => Boolean)
-  async deletePost(@Arg("id") id: number): Promise<boolean> {
-    await Post.delete(id);
-    return true;
-  }
+        if (typeof title !== undefined) {
+            await Post.update({id}, {title});
+        }
+
+        return post;
+    }
+
+    @Mutation(() => Boolean)
+    async deletePost(@Arg("id") id: number): Promise<boolean> {
+        await Post.delete(id);
+        return true;
+    }
 }
