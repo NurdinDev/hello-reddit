@@ -111,4 +111,38 @@ export class PostResolver {
         await Post.delete(id);
         return true;
     }
+
+    @Mutation(() => Boolean)
+    @UseMiddleware(isAuth)
+    async vote(
+        @Arg('postId') postId: number,
+        @Arg('value') value: number,
+        @Ctx() { req }: MyContext,
+    ): Promise<boolean> {
+        const { userId } = req.session;
+        const realValue = value > -1 ? 1 : -1;
+
+        // prevent the current user voting on his posts
+        // @TODO
+
+        await getConnection().transaction(async (tm) => {
+            await tm.query(
+                `
+                    insert into upvote ("userId", "postId", "value")
+                    values ($1, $2, $3)
+                `,
+                [userId, postId, realValue],
+            );
+
+            await tm.query(
+                `
+                update post
+                set points = points + $1
+                where id = $2
+            `,
+                [realValue, postId],
+            );
+        });
+        return true;
+    }
 }
