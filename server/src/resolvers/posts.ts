@@ -150,7 +150,7 @@ export class PostResolver {
                         set points = points + $1
                         where id = $2
                     `,
-                    [realValue, postId],
+                    [2 * realValue, postId],
                 );
             });
         } else if (!vote) {
