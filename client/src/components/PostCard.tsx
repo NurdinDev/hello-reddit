@@ -1,16 +1,14 @@
 import React from 'react';
-import { Box, Flex, Heading, IconButton, Text } from '@chakra-ui/react';
-import { TriangleUpIcon, TriangleDownIcon } from '@chakra-ui/icons';
-import { Post } from '../generated/graphql';
+import { Box, Flex, Heading, Text } from '@chakra-ui/react';
+import { PostSnippetFragment } from '../generated/graphql';
+import { VoteSection } from './VoteSection';
 
-const PostCard: React.FC<{ post: Post | any }> = ({ post }) => {
-    const { title, textSnippet, points } = post;
+const PostCard: React.FC<{ post: PostSnippetFragment }> = ({ post }) => {
+    const { title, textSnippet } = post;
     return (
         <Box d="flex" shadow="md" borderWidth="1px">
             <Flex p="1" flexDirection="column" alignItems="center">
-                <IconButton aria-label={'up-vote'} size={'sm'} variant={'clear'} icon={<TriangleUpIcon />} />
-                <Text size="sm">{points}</Text>
-                <IconButton size={'sm'} variant={'clear'} aria-label={'down-vote'} icon={<TriangleDownIcon />} />
+                <VoteSection post={post} />
             </Flex>
             <Box p="5">
                 <Heading fontSize="xl">{title} </Heading>
