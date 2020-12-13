@@ -1,6 +1,7 @@
 import React from 'react';
 import { usePostsQuery } from '../generated/graphql';
-import { Box, Button, Flex, Heading, Stack, Text } from '@chakra-ui/core';
+import { Button, Flex, Stack, Text } from '@chakra-ui/core';
+import PostCard from './PostCard';
 
 interface PostPageProps {
     variables: {
@@ -16,8 +17,6 @@ const PostPage: React.FC<PostPageProps> = ({ variables, isLastPage, loadMore }) 
         variables,
     });
 
-    console.log({ data }, { fetching });
-
     if (!fetching && !data) {
         return <div>Something wrong! 🙁 check the console log 🐛.</div>;
     }
@@ -27,12 +26,8 @@ const PostPage: React.FC<PostPageProps> = ({ variables, isLastPage, loadMore }) 
                 <Text>Loading...</Text>
             ) : (
                 <Stack spacing={8}>
-                    {' '}
                     {data!.posts.posts.map((p) => (
-                        <Box key={p.id} p="5" shadow="md" borderWidth="1px">
-                            <Heading fontSize="xl">{p.title} </Heading>
-                            <Text mt="4">{p.textSnippet}</Text>
-                        </Box>
+                        <PostCard key={p.id} title={p.title} textSnippet={p.textSnippet} />
                     ))}
                 </Stack>
             )}
