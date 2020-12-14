@@ -35,7 +35,7 @@ export const VoteSection: React.FC<VoteSectionProps> = ({ post }) => {
                     setLoadingState('no-loading');
                 }}
             />
-            <Text size="sm">{points}</Text>
+            <Text fontSize="sm">{points}</Text>
             <IconButton
                 size={'sm'}
                 aria-label={'down-vote'}
