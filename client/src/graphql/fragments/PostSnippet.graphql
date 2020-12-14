@@ -3,7 +3,8 @@ fragment PostSnippet on Post {
     title
     textSnippet
     points
-    createdAt
     voteStatus
+    creatorId
+    createdAt
     updatedAt
 }
