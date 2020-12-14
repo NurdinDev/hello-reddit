@@ -8,6 +8,7 @@ import {
     LoginMutation,
     RegisterMutation,
     VoteMutationVariables,
+    DeletePostMutationVariables,
 } from '../generated/graphql';
 import { betterUpdateQuery } from './betterUpdateQuery';
 import { pipe, tap } from 'wonka';
@@ -37,6 +38,9 @@ function invalidateAllPosts(cache: Cache) {
 const cache = cacheExchange({
     updates: {
         Mutation: {
+            deletePost: (_result, args, cache) => {
+                cache.invalidate({ __typename: 'Post', id: (args as DeletePostMutationVariables).id });
+            },
             vote: (_result, args, cache) => {
                 const { postId, value } = args as VoteMutationVariables;
                 const data = cache.readFragment(
