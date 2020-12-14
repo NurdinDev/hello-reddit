@@ -19,10 +19,14 @@ export const VoteSection: React.FC<VoteSectionProps> = ({ post }) => {
             <IconButton
                 aria-label={'up-vote'}
                 size={'sm'}
-                variant={'clear'}
                 icon={<TriangleUpIcon />}
                 isLoading={loadingState === 'upvote-loading'}
+                colorScheme={post.voteStatus === 1 ? 'teal' : 'gray'}
+                disabled={post.voteStatus === 1}
                 onClick={async () => {
+                    if (post.voteStatus === 1) {
+                        return;
+                    }
                     setLoadingState('upvote-loading');
                     await vote({
                         postId: post.id,
@@ -34,11 +38,15 @@ export const VoteSection: React.FC<VoteSectionProps> = ({ post }) => {
             <Text size="sm">{points}</Text>
             <IconButton
                 size={'sm'}
-                variant={'clear'}
                 aria-label={'down-vote'}
                 icon={<TriangleDownIcon />}
+                disabled={post.voteStatus === -1}
                 isLoading={loadingState === 'downvote-loading'}
+                colorScheme={post.voteStatus === -1 ? 'red' : 'gray'}
                 onClick={async () => {
+                    if (post.voteStatus === -1) {
+                        return;
+                    }
                     setLoadingState('downvote-loading');
                     await vote({
                         postId: post.id,
