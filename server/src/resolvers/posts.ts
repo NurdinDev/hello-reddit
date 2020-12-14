@@ -91,7 +91,7 @@ export class PostResolver {
 
     @Query(() => Post, { nullable: true })
     post(@Arg('id', () => Int) id: number): Promise<Post | undefined> {
-        return Post.findOne(id);
+        return Post.findOne(id, { relations: ['creator'] });
     }
 
     @Mutation(() => Post)
@@ -147,34 +147,31 @@ export class PostResolver {
             await getConnection().transaction(async (tm) => {
                 await tm.query(
                     `
-    update
-    upvote
+                        update
+                            upvote
 
-    set value
+                        set value
 
-=
-    $1
-    where
-    "postId" = $2
-    and
-    "userId" = $3
-        `,
+                                =
+                                $1
+                        where "postId" = $2
+                          and "userId" = $3
+                    `,
                     [realValue, postId, userId],
                 );
                 await tm.query(
                     `
-    update
-    post
+                        update
+                            post
 
-    set points
+                        set points
 
-=
-    points
-+
-    $1
-    where
-    id = $2
-        `,
+                                =
+                                    points
+                                    +
+                                    $1
+                        where id = $2
+                    `,
                     [2 * realValue, postId],
                 );
             });
@@ -183,38 +180,32 @@ export class PostResolver {
             await getConnection().transaction(async (tm) => {
                 await tm.query(
                     `
-    insert
-    into
+                        insert
+                        into upvote("userId"
+                            ,
+                                    "postId"
+                            ,
+                                    "value")
 
-    upvote(
+                        values ($1, $2, $3)
 
-    "userId"
-,
-    "postId"
-,
-    "value"
-)
-
-    values($1, $2, $3)
-
-`,
+                    `,
                     [userId, postId, realValue],
                 );
 
                 await tm.query(
                     `
-    update
-    post
+                        update
+                            post
 
-    set points
+                        set points
 
-=
-    points
-+
-    $1
-    where
-    id = $2
-        `,
+                                =
+                                    points
+                                    +
+                                    $1
+                        where id = $2
+                    `,
                     [realValue, postId],
                 );
             });
