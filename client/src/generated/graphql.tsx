@@ -42,6 +42,7 @@ export type Post = {
   title: Scalars['String'];
   text: Scalars['String'];
   points: Scalars['Float'];
+  voteStatus?: Maybe<Scalars['Int']>;
   creatorId: Scalars['Float'];
   creator: User;
   createdAt: Scalars['String'];
@@ -144,7 +145,7 @@ export type EmailOrUsernameInput = {
 
 export type PostSnippetFragment = (
   { __typename?: 'Post' }
-  & Pick<Post, 'id' | 'title' | 'textSnippet' | 'points' | 'createdAt' | 'updatedAt'>
+  & Pick<Post, 'id' | 'title' | 'textSnippet' | 'points' | 'createdAt' | 'voteStatus' | 'updatedAt'>
 );
 
 export type RegularErrorFragment = (
@@ -286,6 +287,7 @@ export const PostSnippetFragmentDoc = gql`
   textSnippet
   points
   createdAt
+  voteStatus
   updatedAt
 }
     `;

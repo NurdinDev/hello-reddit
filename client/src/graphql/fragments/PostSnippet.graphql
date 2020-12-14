@@ -4,5 +4,6 @@ fragment PostSnippet on Post {
     textSnippet
     points
     createdAt
+    voteStatus
     updatedAt
 }
