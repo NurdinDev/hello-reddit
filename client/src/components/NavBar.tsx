@@ -4,6 +4,7 @@ import React from 'react';
 import { useLogoutMutation, useMeQuery } from '../generated/graphql';
 import { isServer } from '../utils/isServer';
 import { DarkModeSwitch } from './DarkModeSwitch';
+import { NextChakraLink } from './NextChakraLink';
 
 interface NavBarProps {}
 
@@ -25,9 +26,6 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
     } else if (!data?.me) {
         body = (
             <>
-                <NextLink href="/">
-                    <Link mr="2">Home</Link>
-                </NextLink>
                 <NextLink href="/login">
                     <Link mr="2">login</Link>
                 </NextLink>
@@ -62,6 +60,9 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
             <Box>
                 <DarkModeSwitch />
             </Box>
+            <NextChakraLink href="/" mr={2}>
+                Home
+            </NextChakraLink>
             <Box display="flex" mr="auto">
                 {body}
             </Box>
