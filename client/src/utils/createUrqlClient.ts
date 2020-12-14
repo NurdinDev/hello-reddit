@@ -1,11 +1,19 @@
 import Router from 'next/router';
 import { cacheExchange } from '@urql/exchange-graphcache';
-import { dedupExchange, fetchExchange } from 'urql';
-import { LogoutMutation, MeQuery, MeDocument, LoginMutation, RegisterMutation } from '../generated/graphql';
+import { dedupExchange, fetchExchange, gql } from 'urql';
+import {
+    LogoutMutation,
+    MeQuery,
+    MeDocument,
+    LoginMutation,
+    RegisterMutation,
+    VoteMutationVariables,
+} from '../generated/graphql';
 import { betterUpdateQuery } from './betterUpdateQuery';
 import { pipe, tap } from 'wonka';
 import { Exchange } from 'urql';
 import { Cache } from '@urql/exchange-graphcache/dist/types/types';
+import { isServer } from './isServer';
 
 const errorExchange: Exchange = ({ forward }) => (ops$) => {
     return pipe(
@@ -29,6 +37,35 @@ function invalidateAllPosts(cache: Cache) {
 const cache = cacheExchange({
     updates: {
         Mutation: {
+            vote: (_result, args, cache) => {
+                const { postId, value } = args as VoteMutationVariables;
+                const data = cache.readFragment(
+                    gql`
+                        fragment _ on Post {
+                            id
+                            points
+                            voteStatus
+                        }
+                    `,
+                    { id: postId } as any,
+                );
+                if (data) {
+                    if (data.voteStatus === value) {
+                        return;
+                    }
+                    const newPoints = (data.points as number) + (!data.voteStatus ? 1 : 2) * value;
+                    cache.writeFragment(
+                        gql`
+                            fragment _ on Post {
+                                points
+                                voteStatus
+                            }
+                        `,
+                        { id: postId, points: newPoints, valueStatus: value } as any,
+                    );
+                }
+                invalidateAllPosts(cache);
+            },
             createPost: (_result, _args, cache) => {
                 invalidateAllPosts(cache);
             },
@@ -61,10 +98,21 @@ const cache = cacheExchange({
     },
 });
 
-export const createUrqlClient = (ssrExchange: any) => ({
-    url: 'http://localhost:4000/graphql',
-    fetchOptions: {
-        credentials: 'include' as const,
-    },
-    exchanges: [dedupExchange, cache, errorExchange, ssrExchange, fetchExchange],
-});
+export const createUrqlClient = (ssrExchange: any, ctx: any) => {
+    let cookie = '';
+    if (isServer()) {
+        cookie = ctx?.req?.headers?.cookie;
+    }
+    return {
+        url: 'http://localhost:4000/graphql',
+        fetchOptions: {
+            credentials: 'include' as const,
+            headers: cookie
+                ? {
+                      cookie,
+                  }
+                : undefined,
+        },
+        exchanges: [dedupExchange, cache, errorExchange, ssrExchange, fetchExchange],
+    };
+};
