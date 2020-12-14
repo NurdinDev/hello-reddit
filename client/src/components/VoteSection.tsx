@@ -1,14 +1,20 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { IconButton, Text } from '@chakra-ui/react';
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
-import { PostSnippetFragment, useVoteMutation } from '../generated/graphql';
+import { PostSnippetFragment, useMeQuery, useVoteMutation } from '../generated/graphql';
 
 interface VoteSectionProps {
     post: PostSnippetFragment;
 }
 
 export const VoteSection: React.FC<VoteSectionProps> = ({ post }) => {
-    const { points } = post;
+    const { points, creatorId } = post;
+    const [{ data: meData }] = useMeQuery();
+
+    const isCreatedByCurrentUser = useMemo(() => {
+        return meData?.me?.id === String(creatorId);
+    }, [meData, creatorId]);
+
     const [loadingState, setLoadingState] = useState<'upvote-loading' | 'downvote-loading' | 'no-loading'>(
         'no-loading',
     );
@@ -22,7 +28,7 @@ export const VoteSection: React.FC<VoteSectionProps> = ({ post }) => {
                 icon={<TriangleUpIcon />}
                 isLoading={loadingState === 'upvote-loading'}
                 colorScheme={post.voteStatus === 1 ? 'teal' : 'gray'}
-                disabled={post.voteStatus === 1}
+                disabled={isCreatedByCurrentUser || post.voteStatus === 1}
                 onClick={async () => {
                     if (post.voteStatus === 1) {
                         return;
@@ -40,7 +46,7 @@ export const VoteSection: React.FC<VoteSectionProps> = ({ post }) => {
                 size={'sm'}
                 aria-label={'down-vote'}
                 icon={<TriangleDownIcon />}
-                disabled={post.voteStatus === -1}
+                disabled={isCreatedByCurrentUser || post.voteStatus === -1}
                 isLoading={loadingState === 'downvote-loading'}
                 colorScheme={post.voteStatus === -1 ? 'red' : 'gray'}
                 onClick={async () => {
