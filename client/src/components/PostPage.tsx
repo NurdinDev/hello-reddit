@@ -13,12 +13,17 @@ interface PostPageProps {
 }
 
 const PostPage: React.FC<PostPageProps> = ({ variables, isLastPage, loadMore }) => {
-    const [{ data, fetching }] = usePostsQuery({
+    const [{ data, error, fetching }] = usePostsQuery({
         variables,
     });
 
     if (!fetching && !data) {
-        return <div>Something wrong! 🙁 check the console log 🐛.</div>;
+        return (
+            <>
+                <div>Something wrong! 🙁 check the console log 🐛.</div>
+                <Text>{error?.message}</Text>
+            </>
+        );
     }
     return (
         <>

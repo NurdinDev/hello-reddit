@@ -11,6 +11,8 @@ import { createConnection } from 'typeorm';
 import { COOKI_NAME, __prod__ } from './constants';
 import { PostResolver } from './resolvers/posts';
 import { UserResolver } from './resolvers/users';
+import { createUserLoader } from './utils/createUserLoader';
+import { createUpVoteLoader } from './utils/createUpVoteLoader';
 
 const main = async () => {
     await createConnection();
@@ -52,7 +54,13 @@ const main = async () => {
             resolvers: [PostResolver, UserResolver],
             validate: false,
         }),
-        context: ({ req, res }) => ({ req, res, redis }),
+        context: ({ req, res }) => ({
+            req,
+            res,
+            redis,
+            userLoader: createUserLoader(),
+            voteLoader: createUpVoteLoader(),
+        }),
     });
 
     apolloServer.applyMiddleware({ app, cors: false });

@@ -1,7 +1,7 @@
 import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../../utils/createUrqlClient';
 import { Layout } from '../../components/Layout';
-import { Heading, Text } from '@chakra-ui/react';
+import { Box, Heading, Text } from '@chakra-ui/react';
 import React from 'react';
 import { useRouter } from 'next/router';
 import { usePostQuery } from '../../generated/graphql';
@@ -44,7 +44,10 @@ export const SinglePost = () => {
         <Layout>
             <EditDeletePostButtons id={intId} creatorId={data?.post?.creator.id} />
             <Heading mb={4}>{data?.post?.title}</Heading>
-            <Text>{data?.post?.text}</Text>
+            <Text fontSize={'sm'}>Posted by: {data?.post.creator.username}</Text>
+            <Box mt={6}>
+                <Text>{data?.post?.text}</Text>
+            </Box>
         </Layout>
     );
 };

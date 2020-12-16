@@ -10,7 +10,7 @@ const PostCard: React.FC<{ post: PostSnippetFragment }> = ({ post }) => {
         id,
         title,
         textSnippet,
-        creator: { id: creatorId },
+        creator: { id: creatorId, username },
     } = post;
     return (
         <Box d="flex" shadow="md" borderWidth="1px" position="relative">
@@ -21,6 +21,7 @@ const PostCard: React.FC<{ post: PostSnippetFragment }> = ({ post }) => {
                 <NextChakraLink href={`/post/${id}`}>
                     <Heading fontSize="xl">{title} </Heading>
                 </NextChakraLink>
+                <Text fontSize={'sm'}>Posted by: {username}</Text>
                 <Text mt="4">{textSnippet}</Text>
                 <Box position="absolute" top={0} right={0} bottom={0}>
                     <EditDeletePostButtons id={id} creatorId={creatorId} />
