@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flex, IconButton } from '@chakra-ui/react';
+import { Box, IconButton } from '@chakra-ui/react';
 import { useDeletePostMutation, useMeQuery } from '../generated/graphql';
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import { NextChakraLink } from './NextChakraLink';
@@ -18,7 +18,7 @@ export const EditDeletePostButtons: React.FC<EditDeletePostButtonsProps> = ({ id
     }
 
     return (
-        <Flex flexDirection="column" justifyContent="space-between" h="100%" width="8">
+        <Box>
             <NextChakraLink href="/post/edit/[id]" as={`/post/edit/${id}`}>
                 <IconButton variant={'clear'} size={'sm'} aria-label="delete-post" icon={<EditIcon />} />
             </NextChakraLink>
@@ -30,6 +30,6 @@ export const EditDeletePostButtons: React.FC<EditDeletePostButtonsProps> = ({ id
                 onClick={() => deletePost({ id })}
                 icon={<DeleteIcon />}
             />
-        </Flex>
+        </Box>
     );
 };
