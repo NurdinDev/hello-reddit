@@ -1,33 +1,35 @@
 import React from 'react';
-import { Box, IconButton } from '@chakra-ui/react';
+import { Flex, IconButton } from '@chakra-ui/react';
 import { useDeletePostMutation, useMeQuery } from '../generated/graphql';
-import { DeleteIcon } from '@chakra-ui/icons';
+import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
+import { NextChakraLink } from './NextChakraLink';
 
 interface EditDeletePostButtonsProps {
     id: number;
-    creatorId: number;
+    creatorId: string;
 }
 
 export const EditDeletePostButtons: React.FC<EditDeletePostButtonsProps> = ({ id, creatorId }) => {
     const [{ data: meData }] = useMeQuery();
     const [, deletePost] = useDeletePostMutation();
 
-    if (meData?.me?.id !== String(creatorId)) {
+    if (meData?.me?.id !== creatorId) {
         return null;
     }
 
     return (
-        <Box>
+        <Flex flexDirection="column" justifyContent="space-between" h="100%" width="8">
+            <NextChakraLink href="/post/edit/[id]" as={`/post/edit/${id}`}>
+                <IconButton variant={'clear'} size={'sm'} aria-label="delete-post" icon={<EditIcon />} />
+            </NextChakraLink>
+
             <IconButton
                 variant={'clear'}
-                position="absolute"
-                top={0}
-                right={0}
                 size={'sm'}
                 aria-label="delete-post"
                 onClick={() => deletePost({ id })}
-                icon={<DeleteIcon color={'red.500'} />}
+                icon={<DeleteIcon />}
             />
-        </Box>
+        </Flex>
     );
 };
