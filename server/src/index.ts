@@ -1,65 +1,67 @@
-import { ApolloServer } from "apollo-server-express";
-import connectRedis from "connect-redis";
-import cors from "cors";
-import "dotenv-safe/config";
-import express from "express";
-import session from "express-session";
-import Redis from "ioredis";
-import "reflect-metadata";
-import { buildSchema } from "type-graphql";
-import { createConnection } from "typeorm";
-import { COOKI_NAME, __prod__ } from "./constants";
-import { PostResolver } from "./resolvers/posts";
-import { UserResolver } from "./resolvers/users";
+import { ApolloServer } from 'apollo-server-express';
+import connectRedis from 'connect-redis';
+import cors from 'cors';
+import 'dotenv-safe/config';
+import express from 'express';
+import session from 'express-session';
+import Redis from 'ioredis';
+import 'reflect-metadata';
+import { buildSchema } from 'type-graphql';
+import { createConnection } from 'typeorm';
+import { COOKI_NAME, __prod__ } from './constants';
+import { PostResolver } from './resolvers/posts';
+import { UserResolver } from './resolvers/users';
 
 const main = async () => {
-  await createConnection();
+    await createConnection();
 
-  const app = express();
+    // await conn.runMigrations();
 
-  let RedisStore = connectRedis(session);
-  let redis = new Redis();
+    const app = express();
 
-  app.use(
-    cors({
-      origin: process.env.CORS_ORIGIN,
-      credentials: true,
-    })
-  );
-  app.use(
-    session({
-      name: COOKI_NAME,
-      store: new RedisStore({
-        client: redis,
-        disableTouch: false,
-      }),
-      cookie: {
-        maxAge: 100 * 60 * 60 * 24 * 365 * 10, // 10 years
-        httpOnly: true,
-        sameSite: "lax", // csrf
-        secure: __prod__, // cookies only works on https
-      },
-      saveUninitialized: false,
-      secret: process.env.SESSION_SECRET as string,
-      resave: false,
-    })
-  );
+    let RedisStore = connectRedis(session);
+    let redis = new Redis();
 
-  const apolloServer = new ApolloServer({
-    schema: await buildSchema({
-      resolvers: [PostResolver, UserResolver],
-      validate: false,
-    }),
-    context: ({ req, res }) => ({ req, res, redis }),
-  });
+    app.use(
+        cors({
+            origin: process.env.CORS_ORIGIN,
+            credentials: true,
+        }),
+    );
+    app.use(
+        session({
+            name: COOKI_NAME,
+            store: new RedisStore({
+                client: redis,
+                disableTouch: false,
+            }),
+            cookie: {
+                maxAge: 100 * 60 * 60 * 24 * 365 * 10, // 10 years
+                httpOnly: true,
+                sameSite: 'lax', // csrf
+                secure: __prod__, // cookies only works on https
+            },
+            saveUninitialized: false,
+            secret: process.env.SESSION_SECRET as string,
+            resave: false,
+        }),
+    );
 
-  apolloServer.applyMiddleware({ app, cors: false });
+    const apolloServer = new ApolloServer({
+        schema: await buildSchema({
+            resolvers: [PostResolver, UserResolver],
+            validate: false,
+        }),
+        context: ({ req, res }) => ({ req, res, redis }),
+    });
 
-  app.listen(process.env.PORT, () => {
-    console.log("server started on localhost:4000");
-  });
+    apolloServer.applyMiddleware({ app, cors: false });
+
+    app.listen(process.env.PORT, () => {
+        console.log('server started on localhost:4000');
+    });
 };
 
 main().catch((err) => {
-  console.error(err);
+    console.error(err);
 });
