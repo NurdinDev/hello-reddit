@@ -1,5 +1,8 @@
 mutation UpdatePost($id: Int!, $title:String!, $text:String!) {
     updatePost(id: $id, text:$text, title: $title) {
-        ...PostSnippet
+        id
+        title
+        text
+        textSnippet
     }
 }

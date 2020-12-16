@@ -146,7 +146,7 @@ export type EmailOrUsernameInput = {
 
 export type PostSnippetFragment = (
   { __typename?: 'Post' }
-  & Pick<Post, 'id' | 'title' | 'textSnippet' | 'points' | 'voteStatus' | 'createdAt' | 'updatedAt'>
+  & Pick<Post, 'id' | 'title' | 'text' | 'textSnippet' | 'points' | 'voteStatus' | 'createdAt' | 'updatedAt'>
   & { creator: (
     { __typename?: 'User' }
     & Pick<User, 'id' | 'username'>
@@ -266,7 +266,7 @@ export type UpdatePostMutation = (
   { __typename?: 'Mutation' }
   & { updatePost?: Maybe<(
     { __typename?: 'Post' }
-    & PostSnippetFragment
+    & Pick<Post, 'id' | 'title' | 'text' | 'textSnippet'>
   )> }
 );
 
@@ -327,6 +327,7 @@ export const PostSnippetFragmentDoc = gql`
     fragment PostSnippet on Post {
   id
   title
+  text
   textSnippet
   points
   voteStatus
@@ -442,10 +443,13 @@ export function useRegisterMutation() {
 export const UpdatePostDocument = gql`
     mutation UpdatePost($id: Int!, $title: String!, $text: String!) {
   updatePost(id: $id, text: $text, title: $title) {
-    ...PostSnippet
+    id
+    title
+    text
+    textSnippet
   }
 }
-    ${PostSnippetFragmentDoc}`;
+    `;
 
 export function useUpdatePostMutation() {
   return Urql.useMutation<UpdatePostMutation, UpdatePostMutationVariables>(UpdatePostDocument);
