@@ -8,11 +8,15 @@ interface VoteSectionProps {
 }
 
 export const VoteSection: React.FC<VoteSectionProps> = ({ post }) => {
-    const { points, creatorId } = post;
+    const {
+        points,
+        creator: { id: creatorId },
+    } = post;
+
     const [{ data: meData }] = useMeQuery();
 
     const isCreatedByCurrentUser = useMemo(() => {
-        return meData?.me?.id === String(creatorId);
+        return meData?.me?.id === creatorId;
     }, [meData, creatorId]);
 
     const [loadingState, setLoadingState] = useState<'upvote-loading' | 'downvote-loading' | 'no-loading'>(
