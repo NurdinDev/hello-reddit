@@ -1,6 +1,5 @@
-import Router from 'next/router';
 import { cacheExchange } from '@urql/exchange-graphcache';
-import { dedupExchange, fetchExchange, gql } from 'urql';
+import { dedupExchange, errorExchange, fetchExchange, gql } from 'urql';
 import {
     LogoutMutation,
     MeQuery,
@@ -11,21 +10,20 @@ import {
     DeletePostMutationVariables,
 } from '../generated/graphql';
 import { betterUpdateQuery } from './betterUpdateQuery';
-import { pipe, tap } from 'wonka';
-import { Exchange } from 'urql';
 import { Cache } from '@urql/exchange-graphcache/dist/types/types';
 import { isServer } from './isServer';
+import Router from 'next/router';
 
-const errorExchange: Exchange = ({ forward }) => (ops$) => {
-    return pipe(
-        forward(ops$),
-        tap(({ error }) => {
-            if (error?.message.toLowerCase().includes('not authenticated')) {
-                Router.replace('/login');
-            }
-        }),
-    );
-};
+// const errorExchange: Exchange = ({ forward }) => (ops$) => {
+//     return pipe(
+//         forward(ops$),
+//         tap(({ error }) => {
+//             if (error?.message.toLowerCase().includes('not authenticated')) {
+//                 Router.replace('/login');
+//             }
+//         }),
+//     );
+// };
 
 function invalidateAllPosts(cache: Cache) {
     const allFields = cache.inspectFields('Query');
@@ -75,6 +73,7 @@ const cache = cacheExchange({
             },
             logout: (_result, _args, cache) => {
                 betterUpdateQuery<LogoutMutation, MeQuery>(cache, { query: MeDocument }, _result, () => ({ me: null }));
+                invalidateAllPosts(cache);
             },
             login: (_result, _args, cache) => {
                 betterUpdateQuery<LoginMutation, MeQuery>(cache, { query: MeDocument }, _result, (result, query) => {
@@ -86,6 +85,7 @@ const cache = cacheExchange({
                         };
                     }
                 });
+                invalidateAllPosts(cache);
             },
             register: (_result, _args, cache) => {
                 betterUpdateQuery<RegisterMutation, MeQuery>(cache, { query: MeDocument }, _result, (result, query) => {
@@ -117,6 +117,18 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
                   }
                 : undefined,
         },
-        exchanges: [dedupExchange, cache, errorExchange, ssrExchange, fetchExchange],
+        exchanges: [
+            dedupExchange,
+            cache,
+            errorExchange({
+                onError: (error) => {
+                    if (error?.message.toLowerCase().includes('not authenticated')) {
+                        Router.replace('/login');
+                    }
+                },
+            }),
+            ssrExchange,
+            fetchExchange,
+        ],
     };
 };
