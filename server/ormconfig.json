@@ -1,0 +1,16 @@
+{
+    "type": "postgres",
+    "host": "localhost",
+    "port": 5432,
+    "username": "postgres",
+    "password": "postgres",
+    "database": "hello_reddit",
+    "entities": ["src/entity/*.ts"],
+    "migrations": ["src/migration/*.ts"],
+    "synchronize": true,
+    "logging": true,
+    "cli": {
+        "entitiesDir": "src/entity",
+        "migrationsDir": "src/migration"
+    }
+}
